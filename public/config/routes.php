@@ -1,8 +1,7 @@
 <?php
 $routes = [
     '' => 'HomeController@home',
-    'about' => 'HomeController@about',
-    'contact' => 'HomeController@contact',
+    'register' => 'RegisterController@register',
     'users' => 'UserController@users',
 ];
 return $routes;

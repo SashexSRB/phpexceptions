@@ -52,11 +52,10 @@ form label {
 
 form input[type="text"],
 form input[type="email"],
-form input[type="number"] {
+form input[type="number"],
+form input[type="password"] {
     width: 100%;
     padding: 8px;
-    margin-top: 4px;
-    margin-bottom: 16px;
     border: 1px solid #ced4da;
     border-radius: 4px;
     box-sizing: border-box;
@@ -103,3 +102,40 @@ tr:nth-child(even) {
 tr:hover {
     background-color: #e2e6ea;
 }
+
+/* Navigation Bar */
+nav {
+    background-color: #343a40;
+    padding: 10px 20px;
+    border-radius: 6px;
+    margin-bottom: 30px;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 0;
+    padding: 0;
+}
+
+nav li {
+    margin: 0;
+}
+
+nav a {
+    text-decoration: none;
+    color: #f8f9fa;
+    padding: 8px 14px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-weight: 500;
+}
+
+nav a:hover,
+nav a:focus {
+    background-color: #495057;
+    color: #ffffff;
+}
+

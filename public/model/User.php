@@ -6,11 +6,13 @@ class User implements Iterator {
     private $attributes = [];
     private $position = 0;
     private $money;
+    private $password;
 
-    public function __construct($username, $email, $money) {
+    public function __construct($username, $email, $money, $password) {
         $this->username = $username;
         $this->email = $email;
         $this->money = $money;
+        $this->password = $password;
     }
 
     // Iterator interface methods
@@ -37,17 +39,26 @@ class User implements Iterator {
         return isset($keys[$this->position]);
     }
 
+    public function checkHash($dbPassword, $inputPassword){
+        try {
+            return $dbPassword === $inputPassword; 
+        } catch (UserException $e) {
+            error_log("UserAuth Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
     // Database operations
     public function saveToDatabase($dbConnection) {
         try {
-            $query = "INSERT INTO users (username, email, money) VALUES (?,?,?)";
+            $query = "INSERT INTO users (username, email, money, password) VALUES (?,?,?,?)";
             $stmt = $dbConnection->prepare($query);
             
             if (!$stmt) {
                 throw new DatabaseException("MySQL prepare statement failed: " . $dbConnection->error);
             }
 
-            $stmt->bind_param("ssi", $this->username, $this->email, $this->money);
+            $stmt->bind_param("ssis", $this->username, $this->email, $this->money, $this->password);
             
             if (!$stmt->execute()) {
                 throw new DatabaseException("MySQL insert failed: " . $stmt->error);
@@ -77,7 +88,7 @@ class User implements Iterator {
 
             $users = [];
             while ($row = $result->fetch_assoc()) {
-                $user = new User($row['username'], $row['email'], $row['money']);
+                $user = new User($row['username'], $row['email'], $row['money'], $row['password']);
                 $user->id = $row['id'];
                 $users[] = $user;
             }
@@ -91,43 +102,44 @@ class User implements Iterator {
         }
     }
 
-    // API operation (mock)
-    public function syncWithAPI() {
+    public static function getUser($dbConnection, $email, $inputPassword) {
         try {
-            $apiEndpoint = 'https://api.example.com/users';
-            $ch = curl_init($apiEndpoint);
-            if ($ch === false) {
-                throw new APIException("Failed to initialize cURL");
-            }
-
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-                'username' => $this->username,
-                'email' => $this->email,
-                'money' => $this->money
-            ]));
-
-            $response = curl_exec($ch);
+            $query = "SELECT id, username, email, money, password FROM users WHERE email = ?";
+            $stmt = $dbConnection->prepare($query);
             
-            if ($response === false) {
-                throw new APIException("API request failed: " . curl_error($ch));
+            if (!$stmt) {
+                throw new DatabaseException("MySQL prepare statement failed: " . $dbConnection->error);
             }
 
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($httpCode >= 400) {
-                throw new APIException("API returned error status: $httpCode");
+            $stmt->bind_param("s", $email);
+            
+            if (!$stmt->execute()) {
+                throw new DatabaseException("MySQL insert failed: " . $stmt->error);
             }
 
-            return json_decode($response, true);
+            $result = $stmt->get_result();
 
-        } catch (APIException $e) {
-            error_log("API error: " . $e->getMessage());
+            if (!$result) {
+                throw new DatabaseException("MySQL get query failed: " . $dbConnection->error);
+            }
+
+            if ($row = $result->fetch_assoc()) {
+                $user = new User($row['username'], $row['email'], $row['money'], $row['password']);
+                $user->id = $row['id'];
+
+                if (!$user->checkHash($user->password, $inputPassword)) {
+                    throw new UserException(('Password incorrect'. $dbConnection->error));
+                }
+
+                return $user;
+            } 
+            return null;
+        } catch (DatabaseException $e) {
+            error_log("MySQL error: " . $e->getMessage());
             throw $e;
         }
     }
+    
 
     // Payment operation (mock)
     public function processPayment($amount) {
