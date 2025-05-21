@@ -1,9 +1,4 @@
 <?php
-$host = "db";
-$user = "db";
-$pass = "db";
-$db = "db";
-
 require_once __DIR__ . '/Exceptions.php';
 
 class DatabaseConnection {
@@ -17,7 +12,6 @@ class DatabaseConnection {
                 throw new DatabaseException("MySQL connection failed: " . $this->connection->connect_error);
             }
 
-            // Set MySQL character set to UTF-8
             if (!$this->connection->set_charset("utf8mb4")) {
                 throw new DatabaseException("Error setting charset: " . $this->connection->error);
             }
@@ -31,10 +25,10 @@ class DatabaseConnection {
         return $this->connection;
     }
 
-    public function __destruct() {
+    public function close() {
         if ($this->connection) {
             $this->connection->close();
+            $this->connection = null;
         }
     }
 }
-?>

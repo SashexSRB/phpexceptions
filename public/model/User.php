@@ -1,33 +1,22 @@
 <?php
-$host = "db";
-$user = "db";
-$pass = "db";
-$db = "db";
-
-require_once __DIR__ . '/Exceptions.php';
-
 class User implements Iterator {
     private $id;
     private $username;
     private $email;
     private $attributes = [];
     private $position = 0;
-    private $dbConnection;
+    private $money;
 
-    public function __construct($username, $email, $dbConnection) {
+    public function __construct($username, $email, $money) {
         $this->username = $username;
         $this->email = $email;
-        $this->dbConnection = $dbConnection;
-        $this->attributes = [
-            'username' => $username,
-            'email' => $email
-        ];
+        $this->money = $money;
     }
 
     // Iterator interface methods
     public function current(): mixed {
         $keys = array_keys($this->attributes);
-        return $this->attributes[$this->position];
+        return $this->attributes[$keys[$this->position]];
     }
     
     public function key(): mixed {
@@ -49,22 +38,22 @@ class User implements Iterator {
     }
 
     // Database operations
-    public function saveToDatabase() {
+    public function saveToDatabase($dbConnection) {
         try {
-            $query = "INSERT INTO users (username, email) VALUES (?, ?)";
-            $stmt = $this->dbConnection->prepare($query);
+            $query = "INSERT INTO users (username, email, money) VALUES (?,?,?)";
+            $stmt = $dbConnection->prepare($query);
             
             if (!$stmt) {
-                throw new DatabaseException("MySQL prepare statement failed: " . $this->dbConnection->error);
+                throw new DatabaseException("MySQL prepare statement failed: " . $dbConnection->error);
             }
 
-            $stmt->bind_param("ss", $this->username, $this->email);
+            $stmt->bind_param("ssi", $this->username, $this->email, $this->money);
             
             if (!$stmt->execute()) {
                 throw new DatabaseException("MySQL insert failed: " . $stmt->error);
             }
 
-            $this->id = $this->dbConnection->insert_id;
+            $this->id = $dbConnection->insert_id;
             $stmt->close();
             return true;
 
@@ -79,16 +68,16 @@ class User implements Iterator {
 
     public static function getAllUsers($dbConnection) {
         try {
-            $query = "SELECT id, username, email FROM users";
+            $query = "SELECT id, username, email, money FROM users";
             $result = $dbConnection->query($query);
 
             if (!$result) {
-                throw new DatabaseException("MySQL query failed: " . $dbConnection->error);
+                throw new DatabaseException("MySQL get query failed: " . $dbConnection->error);
             }
 
             $users = [];
             while ($row = $result->fetch_assoc()) {
-                $user = new User($row['username'], $row['email'], $dbConnection);
+                $user = new User($row['username'], $row['email'], $row['money']);
                 $user->id = $row['id'];
                 $users[] = $user;
             }
@@ -105,7 +94,7 @@ class User implements Iterator {
     // API operation (mock)
     public function syncWithAPI() {
         try {
-            $apiEndpoint = 'https://api.example.com/users'; // Hardcoded for now
+            $apiEndpoint = 'https://api.example.com/users';
             $ch = curl_init($apiEndpoint);
             if ($ch === false) {
                 throw new APIException("Failed to initialize cURL");
@@ -115,7 +104,8 @@ class User implements Iterator {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
                 'username' => $this->username,
-                'email' => $this->email
+                'email' => $this->email,
+                'money' => $this->money
             ]));
 
             $response = curl_exec($ch);
@@ -146,7 +136,6 @@ class User implements Iterator {
                 throw new PaymentException("Invalid payment amount");
             }
 
-            // Mock payment processing
             return [
                 'success' => true,
                 'transaction_id' => uniqid('txn_'),
@@ -171,5 +160,8 @@ class User implements Iterator {
     public function getEmail() {
         return $this->email;
     }
+
+    public function getMoney() {
+        return $this->money;
+    }
 }
-?>

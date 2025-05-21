@@ -1,94 +1,46 @@
 <?php
+require_once 'config/routes.php';
+require_once 'controller/HomeController.php';
+require_once 'controller/UserController.php';
 
-require_once("./class/DatabaseConnection.php");
-require_once("./class/User.php");
+class Router {
+    private $routes;
 
-$users = [];
-$message = '';
-$error = '';
-
-try {
-    $db = new DatabaseConnection($host, $user, $pass, $db);
-    $dbConnection = $db->getConnection();
-
-    $message = '';
-    $error = '';
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $username = filter_input(INPUT_POST, 'username', FILTER_UNSAFE_RAW);
-        $username = trim(strip_tags($username));
-
-        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
-
-        if ($username && $email) {
-            $user = new User($username, $email, $dbConnection);
-            $user->saveToDatabase();
-            $message = "User created successfully!";
-        } else {
-            $error = "Invalid input data";
-        }
+    public function __construct($routes) {
+        $this->routes = $routes;
     }
 
-    $users = User::getAllUsers($dbConnection);
+    public function route() {
+        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $uri = trim($uri, '/');
 
-} catch (Exception $e) {
-    $error = "MySQL Error: " . $e->getMessage();
-}
-?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>MySQL User Management</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .error { color: red; }
-        .success { color: green; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-    </style>
-</head>
-<body>
-    <h1>MySQL User Management</h1>
-
-    <?php if ($error): ?>
-        <p class="error"><?php echo htmlspecialchars($error); ?></p>
-    <?php endif; ?>
-    <?php if ($message): ?>
-        <p class="success"><?php echo htmlspecialchars($message); ?></p>
-    <?php endif; ?>
-
-    <h2>Add New User</h2>
-    <form method="POST">
-        <label>Username: <input type="text" name="username" required></label><br>
-        <label>Email: <input type="email" name="email" required></label><br>
-        <button type="submit">Add User</button>
-    </form>
-
-    <h2>Users List</h2>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Attributes</th>
-        </tr>
-        <?php foreach ($users as $user): ?>
-            <tr>
-                <td><?php echo htmlspecialchars($user->getId()); ?></td>
-                <td><?php echo htmlspecialchars($user->getUsername()); ?></td>
-                <td><?php echo htmlspecialchars($user->getEmail()); ?></td>
-                <td>
-                    <?php
-                    foreach ($user as $key => $value) {
-                        echo htmlspecialchars("$key: $value") . "<br>";
+        foreach ($this->routes as $route => $action) {
+            if ($route === $uri) {
+                try {
+                    list($controller, $method) = explode('@', $action);
+                    if (!class_exists($controller)) {
+                        throw new Exception("Controller $controller not found");
                     }
-                    ?>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-    </table>
-</body>
-</html>
+                    $controllerInstance = new $controller();
+                    if (!method_exists($controllerInstance, $method)) {
+                        throw new Exception("Method $method not found in $controller");
+                    }
+                    $controllerInstance->$method();
+                    return;
+                } catch (Exception $e) {
+                    error_log("Routing error: " . $e->getMessage());
+                    http_response_code(500);
+                    echo "Internal Server Error";
+                    return;
+                }
+            }
+        }
+
+        // Handle 404
+        http_response_code(404);
+        require 'view/404.php';
+    }
+}
+
+$router = new Router($routes);
+$router->route();
