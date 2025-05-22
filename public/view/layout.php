@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title><?php echo htmlspecialchars($data['title']); ?></title>
     <link rel="stylesheet" href="/style/style.css">
+    <link rel="icon" type="image/png" href="/style/icon.png">
 </head>
 <body>
     <nav>

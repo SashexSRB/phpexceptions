@@ -19,7 +19,7 @@ class LoginController {
         $conn = $dbConnection->getConnection();
 
         $data = [
-            'title' => 'Home',
+            'title' => 'PayBro - Login',
             'content' => 'Welcome to PayBro',
             'users' => [],
             'message' => '',

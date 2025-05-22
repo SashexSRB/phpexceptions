@@ -14,7 +14,7 @@ class UserController {
         $conn = $dbConnection->getConnection();
 
         $data = [
-            'title' => 'Users List',
+            'title' => 'PayBro - Users',
             'users' => [],
             'message' => '',
             'error' => ''
