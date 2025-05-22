@@ -6,13 +6,6 @@
     <link rel="stylesheet" href="/style/style.css">
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="/home">Home</a></li>
-            <li><a href="/users">Users</a></li>
-        </ul>
-    </nav>
-
     <?php
     // Determine which view to load based on the route
     $view = basename($_SERVER['REQUEST_URI'], '.php');

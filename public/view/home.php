@@ -1,16 +1,16 @@
-<h1>Home</h1>
-<p><?php echo htmlspecialchars($data['content']); ?></p>
+<div class="content">
 
-<?php if ($data['error']): ?>
-    <p class="error"><?php echo htmlspecialchars($data['error']); ?></p>
-<?php endif; ?>
-<?php if ($data['message']): ?>
-    <p class="success"><?php echo htmlspecialchars($data['message']); ?></p>
-<?php endif; ?>
+    <div class="page-title">
+        <div class="wrap">
+            <h2>Home</h2>
+            <p>Welcome back, <?=htmlspecialchars($_SESSION['account_name'], ENT_QUOTES)?>!</p>
+        </div>
+    </div>
 
-<h2>Login</h2>
-<form method="POST" action="/">
-    <label>Email: <input type="email" name="email" required></label>
-    <label>Password: <input type="password" name="password" required></label>
-    <button type="submit">Login</button>
-</form>
+    <div class="block">
+
+        <p>This is the home page. You are logged in!</p>
+
+    </div>
+
+</div>

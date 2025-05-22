@@ -1,47 +1,13 @@
-<?php
-require_once 'class/DatabaseConnection.php';
-require_once 'model/User.php';
+<?php 
+
 class HomeController {
     public function home() {
-        $config = require 'config/database.php';
-        $dbConnection = new DatabaseConnection(
-            $config['host'],
-            $config['user'],
-            $config['pass'],
-            $config['db']
-        );
-        $conn = $dbConnection->getConnection();
-
-        $data = [
-            'title' => 'Home',
-            'content' => 'Welcome to PayBro',
-            'users' => [],
-            'message' => '',
-            'error' => ''
-        ];
-
-        try {
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
-                $password = filter_input(INPUT_POST, 'password', FILTER_UNSAFE_RAW);
-                $password = trim(strip_tags($password));
-                $hashedPass = hash('sha256', $password);
-
-                if ($email && $hashedPass) {
-                    $user = User::getUser($conn, $email, $hashedPass);
-                    $data['message'] = "User found!";
-                } else {
-                    $data['error'] = "Invalid input data";
-                }
-            }
-
-        } catch (Exception $e) {
-            error_log("MySQL Error: " . $e->getMessage() . "\nStack trace: " . $e->getTraceAsString());
-            $data['error'] = "Password Incorrect";
+        session_start();
+        if(isset($_SESSION['account_loggedin'])) {
+            $url = "https://phpexceptions.ddev.site/login";
+            header('Location: '.$url);
+            exit;
         }
-
         require 'view/layout.php';
-
-        $dbConnection->close();
     }
 }

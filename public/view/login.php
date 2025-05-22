@@ -7,11 +7,10 @@
     <p class="success"><?php echo htmlspecialchars($data['message']); ?></p>
 <?php endif; ?>
 
-<h2>Add New User</h2>
-<form method="POST" action="/register">
-    <label>Username: <input type="text" name="username" required></label>
+<h2>Login</h2>
+<form method="POST" action="/home">
     <label>Email: <input type="email" name="email" required></label>
     <label>Password: <input type="password" name="password" required></label>
-    <input type="hidden" name="money" value="0"><br>
-    <button type="submit">Register</button>
+    <button type="submit">Login</button>
+    <p>Don't have an account yet? <a href="/register">Register</a></p>
 </form>

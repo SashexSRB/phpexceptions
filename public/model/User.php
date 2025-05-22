@@ -39,15 +39,6 @@ class User implements Iterator {
         return isset($keys[$this->position]);
     }
 
-    public function checkHash($dbPassword, $inputPassword){
-        try {
-            return $dbPassword === $inputPassword; 
-        } catch (UserException $e) {
-            error_log("UserAuth Error: " . $e->getMessage());
-            return false;
-        }
-    }
-
     // Database operations
     public function saveToDatabase($dbConnection) {
         try {
@@ -102,44 +93,53 @@ class User implements Iterator {
         }
     }
 
-    public static function getUser($dbConnection, $email, $inputPassword) {
-        try {
-            $query = "SELECT id, username, email, money, password FROM users WHERE email = ?";
-            $stmt = $dbConnection->prepare($query);
-            
-            if (!$stmt) {
-                throw new DatabaseException("MySQL prepare statement failed: " . $dbConnection->error);
-            }
+public static function getUser($dbConnection, $email, $inputPassword) {
+    try {
+        $query = "SELECT id, username, password FROM users WHERE email = ?";
+        $stmt = $dbConnection->prepare($query);
+        
+        if (!$stmt) {
+            throw new DatabaseException("Prepare statement failed: " . $dbConnection->error);
+        }
 
-            $stmt->bind_param("s", $email);
-            
-            if (!$stmt->execute()) {
-                throw new DatabaseException("MySQL insert failed: " . $stmt->error);
-            }
+        $stmt->bind_param("s", $email);
+        
+        if (!$stmt->execute()) {
+            throw new DatabaseException("Query execution failed: " . $stmt->error);
+        }
 
-            $result = $stmt->get_result();
-
-            if (!$result) {
-                throw new DatabaseException("MySQL get query failed: " . $dbConnection->error);
-            }
-
-            if ($row = $result->fetch_assoc()) {
-                $user = new User($row['username'], $row['email'], $row['money'], $row['password']);
-                $user->id = $row['id'];
-
-                if (!$user->checkHash($user->password, $inputPassword)) {
-                    throw new UserException(('Password incorrect'. $dbConnection->error));
-                }
-
-                return $user;
-            } 
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            echo 'Incorrect email or password';
             return null;
-        } catch (DatabaseException $e) {
-            error_log("MySQL error: " . $e->getMessage());
-            throw $e;
+        }
+
+        $row = $result->fetch_assoc();
+        $id = $row['id'];
+        $username = $row['username'];
+        $storedPassword = $row['password'];
+
+        if (password_verify($inputPassword, $storedPassword)) {
+            session_regenerate_id(true);
+            $_SESSION['account_loggedin'] = true;
+            $_SESSION['account_name'] = $username;
+            $_SESSION['account_id'] = $id;
+            echo 'Welcome back, ' . htmlspecialchars($username, ENT_QUOTES);
+            return new User($username, $email, $row['money'] ?? 0, $storedPassword);
+        } else {
+            echo 'Incorrect email or password';
+            return null;
+        }
+    } catch (DatabaseException $e) {
+        error_log("Database error: " . $e->getMessage());
+        throw $e;
+    } finally {
+        if (isset($stmt)) {
+            $stmt->close();
         }
     }
-    
+}
 
     // Payment operation (mock)
     public function processPayment($amount) {

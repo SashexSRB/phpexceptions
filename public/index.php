@@ -3,6 +3,7 @@ require_once 'config/routes.php';
 require_once 'controller/HomeController.php';
 require_once 'controller/UserController.php';
 require_once 'controller/RegisterController.php';
+require_once 'controller/LoginController.php';
 
 class Router {
     private $routes;
