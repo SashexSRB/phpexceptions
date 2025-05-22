@@ -12,5 +12,5 @@
 <form method="POST" action="/">
     <label>Email: <input type="email" name="email" required></label>
     <label>Password: <input type="password" name="password" required></label>
-    <button type="submit">Add User</button>
+    <button type="submit">Login</button>
 </form>
