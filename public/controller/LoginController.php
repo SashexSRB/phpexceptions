@@ -34,7 +34,7 @@ class LoginController {
                 $password = trim(strip_tags($password));
 
                 if ($email && $password) {
-                    $user = User::getUser($conn, $email, $password);
+                    $user = User::getUserForLogin($conn, $email, $password);
                     if ($user) {
                         $_SESSION['message'] = "Welcome, " . htmlspecialchars($user->getUsername());
                         header('Location: /home');

@@ -93,50 +93,71 @@ class User implements Iterator {
         }
     }
 
-public static function getUser($dbConnection, $email, $inputPassword) {
-    try {
-        $query = "SELECT id, username, password, money FROM users WHERE email = ?";
-        $stmt = $dbConnection->prepare($query);
+    public static function getUserForLogin($dbConnection, $email, $inputPassword) {
+        try {
+            $query = "SELECT id, username, password, money FROM users WHERE email = ?";
+            $stmt = $dbConnection->prepare($query);
 
-        if (!$stmt) {
-            throw new DatabaseException("Prepare statement failed: " . $dbConnection->error);
-        }
+            if (!$stmt) {
+                throw new DatabaseException("Prepare statement failed: " . $dbConnection->error);
+            }
 
-        $stmt->bind_param("s", $email);
+            $stmt->bind_param("s", $email);
 
-        if (!$stmt->execute()) {
-            throw new DatabaseException("Query execution failed: " . $stmt->error);
-        }
+            if (!$stmt->execute()) {
+                throw new DatabaseException("Query execution failed: " . $stmt->error);
+            }
 
-        $result = $stmt->get_result();
+            $result = $stmt->get_result();
 
-        if ($result->num_rows === 0) {
-            return null;
-        }
+            if ($result->num_rows === 0) {
+                return null;
+            }
 
-        $row = $result->fetch_assoc();
-        $id = $row['id'];
-        $username = $row['username'];
-        $storedPassword = $row['password'];
+            $row = $result->fetch_assoc();
+            $id = $row['id'];
+            $username = $row['username'];
+            $storedPassword = $row['password'];
 
-        if (hash('sha256',$inputPassword) === $storedPassword) {
-            session_regenerate_id(true);
-            $_SESSION['accountLoggedIn'] = true;
-            $_SESSION['account_name'] = $username;
-            $_SESSION['account_id'] = $id;
-            return new User($username, $email, $row['money'] ?? 0, $storedPassword);
-        } else {
-            return null;
-        }
-    } catch (DatabaseException $e) {
-        error_log("Database error: " . $e->getMessage());
-        throw $e;
-    } finally {
-        if (isset($stmt)) {
-            $stmt->close();
+            if (hash('sha256',$inputPassword) === $storedPassword) {
+                session_regenerate_id(true);
+                $_SESSION['accountLoggedIn'] = true;
+                $_SESSION['account_name'] = $username;
+                $_SESSION['account_id'] = $id;
+                return new User($username, $email, $row['money'] ?? 0, $storedPassword);
+            } else {
+                return null;
+            }
+        } catch (DatabaseException $e) {
+            error_log("Database error: " . $e->getMessage());
+            throw $e;
+        } finally {
+            if (isset($stmt)) {
+                $stmt->close();
+            }
         }
     }
-}
+
+    public static function deposit($dbConnection, $amount, $uID) {
+        try {
+            $query = "UPDATE users SET money = money + ? WHERE id = ?";
+            $stmt = $dbConnection->prepare($query);
+
+            if (!$stmt) {
+                throw new DatabaseException("Prepare statement failed: " . $dbConnection->error);
+            }
+
+            $stmt->bind_param("di", $amount, $uID);
+
+            if (!$stmt->execute()) {
+                throw new DatabaseException("Query execution failed: " . $stmt->error);
+            }
+
+            $stmt->close();
+        } catch (UserException $e) {
+            error_log("Deposit error: " . $e->getMessage());
+        }
+    }
 
     // Payment operation (mock)
     public function processPayment($amount) {

@@ -1,3 +1,3 @@
-transaction history
 deposit money
 transfer money
+transaction history
