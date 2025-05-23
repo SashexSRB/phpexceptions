@@ -159,22 +159,53 @@ class User implements Iterator {
         }
     }
 
-    // Payment operation (mock)
-    public function processPayment($amount) {
+    public static function transfer($dbConnection, $amount, $sourceID, $dest_uName) {
         try {
-            if ($amount <= 0) {
-                throw new PaymentException("Invalid payment amount");
+            $dbConnection->begin_transaction();
+
+            //subtract from source
+            $query1 = "UPDATE users SET money = money - ? WHERE id = ? AND money >= ?";
+            $stmt1 = $dbConnection->prepare($query1);
+
+            if (!$stmt1) {
+                throw new DatabaseException("Preparing 1st statement failed: " . $dbConnection->error);
             }
 
-            return [
-                'success' => true,
-                'transaction_id' => uniqid('txn_'),
-                'amount' => $amount
-            ];
+            $stmt1->bind_param("did", $amount, $sourceID, $amount);
 
-        } catch (PaymentException $e) {
-            error_log("Payment error: " . $e->getMessage());
-            throw $e;
+            if (!$stmt1->execute()) {
+                throw new DatabaseException("1st Query execution failed: " . $stmt1->error);
+            }
+
+            if ($stmt1->affected_rows === 0) {
+                throw new DatabaseException("Insufficient balance.");
+            }
+
+            //add to destination
+            $query2 = "UPDATE users SET money = money + ? WHERE username = ?";
+            $stmt2 = $dbConnection->prepare($query2);
+            if (!$stmt2) {
+                throw new DatabaseException("Preparing 2nd statement failed: ". $dbConnection->error);
+            }
+
+            $stmt2->bind_param("ds", $amount, $dest_uName);
+
+            if (!$stmt2->execute()) {
+                throw new DatabaseException("2nd Query execution failed: " . $stmt2->error);
+            }
+
+            if ($stmt2->affected_rows === 0) {
+                throw new DatabaseException("Destination user not found.");
+            }
+
+            $dbConnection->commit();
+            $stmt1->close();
+            $stmt2->close();
+        } catch (UserException $e) {
+            $dbConnection->rollback();
+            if (isset($stmt1)) $stmt1->close();
+            if (isset($stmt2)) $stmt2->close();
+            error_log("Transfer error: " . $e->getMessage());
         }
     }
 

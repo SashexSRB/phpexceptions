@@ -66,7 +66,7 @@ form {
     border: 1px solid #dee1e6;
     border-radius: 5px;
     margin-bottom: 30px;
-    max-width: 100%;
+    min-width: 476px;
 }
 
 /* Form labels */
@@ -186,6 +186,15 @@ nav a:hover,
 nav a:focus {
     background-color: #495057;
     color: #ffffff;
+}
+
+.forms {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 2rem;
+    margin-left: 5rem;
+    margin-right: 5rem;
 }
 
 /* Utility classes from first snippet for spacing */
