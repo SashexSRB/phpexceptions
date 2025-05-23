@@ -5,10 +5,11 @@ require_once 'model/User.php';
 class LoginController {
     public function login() {
         session_start();
-        if(isset($_SESSION['account_loggedin'])) {
-            header('Location: home.php');
+        if (isset($_SESSION['accountLoggedIn'])) {
+            header('Location: /home');
             exit;
         }
+
         $config = require 'config/database.php';
         $dbConnection = new DatabaseConnection(
             $config['host'],
@@ -35,7 +36,9 @@ class LoginController {
                 if ($email && $password) {
                     $user = User::getUser($conn, $email, $password);
                     if ($user) {
-                        $data['message'] = "User found!";
+                        $_SESSION['message'] = "Welcome, " . htmlspecialchars($user->getUsername());
+                        header('Location: /home');
+                        exit;
                     } else {
                         $data['error'] = "Invalid email or password";
                     }
@@ -47,6 +50,7 @@ class LoginController {
             error_log("Error: " . $e->getMessage() . "\nStack trace: " . $e->getTraceAsString());
             $data['error'] = "Login failed. Please try again.";
         }
+
         require "view/layoutOut.php";
         $dbConnection->close();
     }

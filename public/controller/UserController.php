@@ -4,6 +4,11 @@ require_once 'model/User.php';
 
 class UserController {
     public function users() {
+        session_start();
+        if(!isset($_SESSION['accountLoggedIn'])) {
+            header('Location: /login');
+            exit;
+        }
         $config = require 'config/database.php';
         $dbConnection = new DatabaseConnection(
             $config['host'],

@@ -8,7 +8,7 @@ class User implements Iterator {
     private $money;
     private $password;
 
-    public function __construct($username, $email, $money, $password) {
+    public function __construct($username, $email, $money, $password = '') {
         $this->username = $username;
         $this->email = $email;
         $this->money = $money;
@@ -79,7 +79,7 @@ class User implements Iterator {
 
             $users = [];
             while ($row = $result->fetch_assoc()) {
-                $user = new User($row['username'], $row['email'], $row['money'], $row['password']);
+                $user = new User($row['username'], $row['email'], $row['money']);
                 $user->id = $row['id'];
                 $users[] = $user;
             }
@@ -95,23 +95,22 @@ class User implements Iterator {
 
 public static function getUser($dbConnection, $email, $inputPassword) {
     try {
-        $query = "SELECT id, username, password FROM users WHERE email = ?";
+        $query = "SELECT id, username, password, money FROM users WHERE email = ?";
         $stmt = $dbConnection->prepare($query);
-        
+
         if (!$stmt) {
             throw new DatabaseException("Prepare statement failed: " . $dbConnection->error);
         }
 
         $stmt->bind_param("s", $email);
-        
+
         if (!$stmt->execute()) {
             throw new DatabaseException("Query execution failed: " . $stmt->error);
         }
 
         $result = $stmt->get_result();
-        
+
         if ($result->num_rows === 0) {
-            echo 'Incorrect email or password';
             return null;
         }
 
@@ -120,15 +119,13 @@ public static function getUser($dbConnection, $email, $inputPassword) {
         $username = $row['username'];
         $storedPassword = $row['password'];
 
-        if (password_verify($inputPassword, $storedPassword)) {
+        if (hash('sha256',$inputPassword) === $storedPassword) {
             session_regenerate_id(true);
-            $_SESSION['account_loggedin'] = true;
+            $_SESSION['accountLoggedIn'] = true;
             $_SESSION['account_name'] = $username;
             $_SESSION['account_id'] = $id;
-            echo 'Welcome back, ' . htmlspecialchars($username, ENT_QUOTES);
             return new User($username, $email, $row['money'] ?? 0, $storedPassword);
         } else {
-            echo 'Incorrect email or password';
             return null;
         }
     } catch (DatabaseException $e) {

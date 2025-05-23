@@ -10,7 +10,7 @@
 
 /* General layout and typography */
 body {
-    background-color: #f3f5f7; /* from first snippet */
+    background-color: #f3f5f7;
     color: #212529;
     max-width: 1200px;
     margin: 0 auto;
@@ -22,8 +22,8 @@ body {
 
 /* Headings */
 h1 {
-    color: #474b50; /* darker, from first snippet */
-    border-bottom: 2px solid #dee1e6; /* tweaked border color */
+    color: #474b50;
+    border-bottom: 2px solid #dee1e6;
     padding-bottom: 5px;
     margin-bottom: 20px;
     font-weight: 700;
@@ -31,8 +31,8 @@ h1 {
 }
 
 h2 {
-    color: #474b50; /* darker, from first snippet */
-    border-bottom: 2px solid #dee1e6; /* tweaked border color */
+    color: #474b50;
+    border-bottom: 2px solid #dee1e6;
     padding-bottom: 5px;
     margin-bottom: 20px;
     font-weight: 600;
@@ -62,7 +62,7 @@ h2 {
 /* Form styling */
 form {
     background-color: #ffffff;
-    padding: 25px 30px; /* slightly more padding from first snippet style */
+    padding: 25px 30px;
     border: 1px solid #dee1e6;
     border-radius: 5px;
     margin-bottom: 30px;
@@ -72,7 +72,7 @@ form {
 /* Form labels */
 form label {
     display: block;
-    padding: 20px 0 10px 0; /* from first snippet */
+    padding: 20px 0 10px 0;
     font-weight: 500;
     font-size: 14px;
     color: #474b50;
@@ -84,7 +84,7 @@ form input[type="email"],
 form input[type="number"],
 form input[type="password"] {
     width: 100%;
-    height: 43px; /* consistent height */
+    height: 43px;
     padding: 0 15px;
     border: 1px solid #dee1e6;
     border-radius: 4px;
@@ -98,7 +98,7 @@ form input[type="text"]::placeholder,
 form input[type="email"]::placeholder,
 form input[type="number"]::placeholder,
 form input[type="password"]::placeholder {
-    color: #989fa8; /* placeholder color from first snippet */
+    color: #989fa8;
 }
 
 /* Buttons */
@@ -109,7 +109,7 @@ form button {
     appearance: none;
     cursor: pointer;
     border: 0;
-    background-color: #8f0707; /* from first snippet's btn */
+    background-color: #8f0707;
     color: #ffffff;
     padding: 0 14px;
     font-size: 14px;

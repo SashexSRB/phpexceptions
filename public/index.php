@@ -4,6 +4,7 @@ require_once 'controller/HomeController.php';
 require_once 'controller/UserController.php';
 require_once 'controller/RegisterController.php';
 require_once 'controller/LoginController.php';
+require_once 'controller/LogoutController.php';
 
 class Router {
     private $routes;

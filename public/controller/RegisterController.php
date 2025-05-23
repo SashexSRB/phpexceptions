@@ -4,6 +4,7 @@ require_once 'model/User.php';
 
 class RegisterController {
     public function register() {
+        session_start();
         $config = require 'config/database.php';
         $dbConnection = new DatabaseConnection(
             $config['host'],
